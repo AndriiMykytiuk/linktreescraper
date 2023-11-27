@@ -1,6 +1,3 @@
-Certainly! Below is the full code with the modifications to include the link mapping:
-
-```python
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel
