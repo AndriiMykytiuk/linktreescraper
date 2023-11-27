@@ -98,7 +98,7 @@ class Linktree(object):
 
         links = []
         for _link in _links:
-            if 'fans' in _links:
+            if 'fans' in _link:
                 _link["of_link"]: _link
             url = _link["url"]
             link = Link(url=url)
