@@ -32,7 +32,6 @@ class LinktreeUser:
     createdAt: int
     updatedAt: int
     links: List[Link]
-    of_link: List[Link]
 
     # Method to generate link mapping
     def get_link_mapping(self):
@@ -154,8 +153,6 @@ class Linktree(object):
         description = account["description"]
 
         links = await self.getUserLinks(data=JSON_INFO)
-        of_link = [link for link in links if 'fans' in link]
-
 
         return LinktreeUser(username=username,
                             url=url,
@@ -167,7 +164,7 @@ class Linktree(object):
                             updatedAt=updated_at,
                             description=description,
                             links=links,
-                            of_link=of_link)
+                            )
 
 # Define a model for the request
 class LinktreeRequest(BaseModel):
