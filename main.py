@@ -33,6 +33,19 @@ class LinktreeUser:
     updatedAt: int
     links: List[Link]
 
+    # Method to generate link mapping
+    def get_link_mapping(self):
+        link_mapping = {}
+        for link in self.links:
+            if "twitter.com" in link.url.lower():
+                link_mapping["twitter"] = link.url
+            elif "instagram.com" in link.url.lower():
+                link_mapping["instagram"] = link.url
+            elif "onlyfans.com" in link.url.lower():
+                link_mapping["onlyfans"] = link.url
+            # Add more conditions for other social media platforms as needed
+        return link_mapping
+
 class Linktree(object):
     def __init__(self, disable_ssl_verification: bool = False):
         self.disable_ssl_verification = disable_ssl_verification
@@ -149,7 +162,6 @@ class Linktree(object):
                             updatedAt=updated_at,
                             description=description,
                             links=links)
-
 
 # Define a model for the request
 class LinktreeRequest(BaseModel):
