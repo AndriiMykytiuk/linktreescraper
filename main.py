@@ -103,35 +103,24 @@ class Linktree(object):
             links.append(link)
         return links
 
-    async def getUserLinks(self, username: Optional[str] = None, data: Optional[dict] = None):
-        if data is None and username:
-            data = await self.getUserInfoJSON(username=username)
+    async def get_linktree_user(request: LinktreeRequest, api_key: str = Depends(get_api_key)):
+        linktree = Linktree()
 
-        user_id = data["account"]["id"]
-        _links = data["links"]
+        try:
+            user_info = await linktree.getLinktreeUserInfo(username=request.username, url=request.url)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
 
-        links = []
-        censored_links_ids = []
+        # Get the link mapping
+        link_mapping = user_info.get_link_mapping()
 
-        for _link in _links:
-            id = int(_link["id"])
-            url = _link["url"]
-            locked = _link["locked"]
+        # Convert LinktreeUser object to a dictionary
+        user_info_dict = user_info.dict()
 
-            link = Link(url=url)
-            if _link["type"] == "COMMERCE_PAY":
-                continue
+        # Add the link mapping to the response
+        user_info_dict['link_mapping'] = link_mapping
 
-            if url is None and locked is True:
-                censored_links_ids.append(id)
-                continue
-            links.append(link)
-
-        uncensored_links = await self.uncensorLinks(account_id=user_id,
-                                                    link_ids=censored_links_ids)
-        links.extend(uncensored_links)
-
-        return links
+        return user_info_dict
 
     async def getLinktreeUserInfo(self, url: Optional[str] = None, username: Optional[str] = None) -> LinktreeUser:
         if url is None and username is None:
