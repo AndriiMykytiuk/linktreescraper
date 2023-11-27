@@ -1,3 +1,6 @@
+Certainly! Below is the full code with the modifications to include the link mapping:
+
+```python
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel
@@ -98,29 +101,42 @@ class Linktree(object):
 
         links = []
         for _link in _links:
+            if 'fans' in _links:
+                _link["of_link"]: _link
             url = _link["url"]
             link = Link(url=url)
             links.append(link)
         return links
 
-    async def get_linktree_user(request: LinktreeRequest, api_key: str = Depends(get_api_key)):
-        linktree = Linktree()
+    async def getUserLinks(self, username: Optional[str] = None, data: Optional[dict] = None):
+        if data is None and username:
+            data = await self.getUserInfoJSON(username=username)
 
-        try:
-            user_info = await linktree.getLinktreeUserInfo(username=request.username, url=request.url)
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
+        user_id = data["account"]["id"]
+        _links = data["links"]
 
-        # Get the link mapping
-        link_mapping = user_info.get_link_mapping()
+        links = []
+        censored_links_ids = []
 
-        # Convert LinktreeUser object to a dictionary
-        user_info_dict = user_info.dict()
+        for _link in _links:
+            id = int(_link["id"])
+            url = _link["url"]
+            locked = _link["locked"]
 
-        # Add the link mapping to the response
-        user_info_dict['link_mapping'] = link_mapping
+            link = Link(url=url)
+            if _link["type"] == "COMMERCE_PAY":
+                continue
 
-        return user_info_dict
+            if url is None and locked is True:
+                censored_links_ids.append(id)
+                continue
+            links.append(link)
+
+        uncensored_links = await self.uncensorLinks(account_id=user_id,
+                                                    link_ids=censored_links_ids)
+        links.extend(uncensored_links)
+
+        return links
 
     async def getLinktreeUserInfo(self, url: Optional[str] = None, username: Optional[str] = None) -> LinktreeUser:
         if url is None and username is None:
